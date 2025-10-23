@@ -18,9 +18,22 @@ const razorpay = new Razorpay({
 });
 
 app.use(express.json());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://rajgrocery-frontend.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // frontend URL
+    origin: function (origin, callback) {
+      // allow requests with no origin (like Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `CORS policy: The origin ${origin} is not allowed`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true, // allow cookies
   })
 );
