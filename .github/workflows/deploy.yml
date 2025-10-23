@@ -1,0 +1,44 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main # change if you use a different branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Add SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Deploy to EC2
+        run: |
+          echo "---- Deploying Backend ----"
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/apps/backend || mkdir -p ~/apps/backend && cd ~/apps/backend
+
+            if [ ! -d .git ]; then
+              git clone https://github.com/${{ github.repository }} .
+            else
+              git pull origin main
+            fi
+
+            npm install
+            pm2 restart backend || pm2 start server.js --name backend
+            pm2 save
+          EOF
+
+      - name: Clean up
+        run: rm -f private_key.pem
