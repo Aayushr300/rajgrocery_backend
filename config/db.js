@@ -1,6 +1,7 @@
 // Import mysql2 with promise support
 const mysql = require("mysql2/promise");
 
+// Db updated
 // Create a connection pool to AWS RDS MySQL
 const pool = mysql.createPool({
   host: "grocery.cl4ik0q64efb.ap-south-1.rds.amazonaws.com", // ✅ Your RDS endpoint
